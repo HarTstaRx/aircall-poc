@@ -16,6 +16,9 @@
     "test": "jest -c ./config/jest.config.json -u"
   },
   "dependencies": {
+    "@apollo/client": "^3.6.9",
+    "graphql": "^16.6.0",
+    "graphql-ws": "^5.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

@@ -1,5 +1,12 @@
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface CacheInterface {}
+import { UserInterface } from '../../graphql/interfaces';
+
+export interface CacheInterface {
+  login?: {
+    access_token: string;
+    refresh_token: string;
+    user: UserInterface;
+  } | null;
+}
 
 export interface StoreContextInterface {
   cache: CacheInterface;
