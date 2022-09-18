@@ -1,0 +1,6 @@
+node_modules
+www
+__snapshots__
+tsconfig.tsbuildinfo
+.env
+yarn.lock

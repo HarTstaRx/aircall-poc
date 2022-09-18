@@ -1,0 +1,69 @@
+@import './variables';
+
+body {
+  width: 100vw;
+  height: 100vh;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  font-family: monospace;
+  justify-content: space-between;
+}
+
+header.app-header {
+  height: 3rem;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #142d4c;
+  border-bottom: 1px solid #385170;
+  color: #ececec;
+  cursor: default;
+  user-select: none;
+
+  @media (max-width: $tablet-width) {
+    height: 5rem;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: $smartphone-width) {
+    height: 7rem;
+    font-size: 0.8rem;
+    justify-content: center;
+  }
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #ececec;
+  height: calc(100vh - 5rem);
+  border-bottom: 1px solid #385170;
+  color: #385170;
+
+  @media (max-width: $tablet-width) {
+    justify-content: flex-start;
+    padding-top: 1rem;
+    height: calc(100vh - 7rem);
+  }
+
+  @media (max-width: $smartphone-width) {
+    justify-content: flex-start;
+    padding-top: 2rem;
+    height: calc(100vh - 9rem);
+  }
+}
+
+footer {
+  display: flex;
+  background-color: #9fd3c7;
+  justify-content: center;
+  height: 2rem;
+  align-items: center;
+  color: #385170;
+  cursor: default;
+  user-select: none;
+}
