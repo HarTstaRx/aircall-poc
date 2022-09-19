@@ -1,5 +1,5 @@
 export * from './responses';
-export * from './login.params.interface';
+export * from './params';
 export * from './user.interface';
 export * from './call.interface';
 export * from './note.interface';

@@ -5,8 +5,12 @@ import { isNullOrEmpty } from '../../shared/utils';
 
 interface Props {
   handleCreateNote: (newNoteContent: string) => void;
+  loading?: boolean;
 }
-export const CreateNote = ({ handleCreateNote }: Props): JSX.Element => {
+export const CreateNote = ({
+  handleCreateNote,
+  loading,
+}: Props): JSX.Element => {
   const [newNoteContent, setNewNoteContent] = useState<string>('');
   return (
     <div className='call-detail__notes__add'>
@@ -21,7 +25,7 @@ export const CreateNote = ({ handleCreateNote }: Props): JSX.Element => {
           handleCreateNote(newNoteContent);
           setNewNoteContent('');
         }}
-        disabled={isNullOrEmpty(newNoteContent)}
+        disabled={isNullOrEmpty(newNoteContent) || loading}
       >
         <Add />
       </IconButton>

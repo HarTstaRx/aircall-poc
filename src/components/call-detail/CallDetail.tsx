@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useLazyQuery } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { Edit, Delete } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
 
 import { CALL_QUERY } from '../../graphql/queries';
+import { ADD_NOTE_MUTATION } from '../../graphql/mutations';
 import {
+  AddNoteParamsInterface,
+  AddNoteResponseInterface,
   CallDetailResponseInterface,
   NoteInterface,
 } from '../../graphql/interfaces';
@@ -16,7 +19,6 @@ import {
 } from '../call/call.utils';
 import { getShortDateString, getShortTimeString } from '../call/date.utils';
 import { CreateNote } from '..';
-import { randomId } from '../../shared/utils';
 
 import './CallDetail.scss';
 
@@ -24,24 +26,26 @@ interface Props {
   callId: string;
 }
 export const CallDetail = ({ callId }: Props): JSX.Element => {
-  const [getCallDetail, { loading }] =
+  const [getCallDetail, { loading: loadingDetail }] =
     useLazyQuery<CallDetailResponseInterface>(CALL_QUERY);
+  const [addNote, { loading: loadingAddNotes }] =
+    useMutation<AddNoteResponseInterface>(ADD_NOTE_MUTATION);
   const [callDetail, setCallDetail] = useState<
     CallDetailInterface | undefined
   >();
 
   const handleCreateNote = (newNoteContent: string) => {
-    if (callDetail)
-      setCallDetail({
-        ...callDetail,
-        notes: [
-          ...callDetail.notes,
-          {
-            id: randomId(),
-            content: newNoteContent,
-          },
-        ],
-      });
+    const params: AddNoteParamsInterface = {
+      input: {
+        activityId: callId,
+        content: newNoteContent,
+      },
+    };
+    void addNote({ variables: params }).then((result) => {
+      if (callDetail && result.data) {
+        setCallDetail({ ...callDetail, notes: result.data.addNote.notes });
+      }
+    });
   };
 
   const handleEditNote = (noteId: string) => {
@@ -62,7 +66,7 @@ export const CallDetail = ({ callId }: Props): JSX.Element => {
       id={callId}
       className='call-detail'
     >
-      {loading && 'Loading...'}
+      {loadingDetail && 'Loading...'}
       {callDetail && (
         <>
           <span className='call-detail__title'>
@@ -113,7 +117,10 @@ export const CallDetail = ({ callId }: Props): JSX.Element => {
                 There are currently no notes for this call. Add one!
               </div>
             )}
-            <CreateNote handleCreateNote={handleCreateNote} />
+            <CreateNote
+              handleCreateNote={handleCreateNote}
+              loading={loadingAddNotes}
+            />
           </div>
         </>
       )}
