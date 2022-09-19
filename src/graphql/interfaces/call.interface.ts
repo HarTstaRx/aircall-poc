@@ -7,4 +7,5 @@ export interface CallInterface {
   to: string;
   call_type: CallTypeEnum;
   created_at: string;
+  is_archived: boolean;
 }

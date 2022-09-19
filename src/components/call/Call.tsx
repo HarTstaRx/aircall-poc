@@ -32,7 +32,7 @@ export const Call = (call: Props): JSX.Element => {
   return (
     <div
       id={call.id}
-      className='call'
+      className={`call${call.is_archived ? ' archived' : ''}`}
     >
       <div className='call-left-group'>
         <span className='call__selected'>

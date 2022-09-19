@@ -27,6 +27,12 @@
     }
   }
 
+  &.archived {
+    .call__icon {
+      color: #cccecf;
+    }
+  }
+
   &__icon {
     display: flex;
 

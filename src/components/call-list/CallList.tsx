@@ -1,23 +1,25 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useLazyQuery } from '@apollo/client';
-import { Pagination, Stack, Divider } from '@mui/material';
+import { FetchResult, useLazyQuery, useMutation } from '@apollo/client';
+import { Pagination, Stack, Divider, Button } from '@mui/material';
 
 import { PAGINATED_CALLS_QUERY } from '../../graphql/queries';
+import { ARCHIVE_CALL_MUTATION } from '../../graphql/mutations';
 import {
+  ArchiveCallResponseInterface,
   CallInterface,
   PaginatedCallsResponseInterface,
 } from '../../graphql/interfaces';
 import { StoreContextInterface } from '../../shared/interfaces';
 import { StoreContext } from '../../contexts/store.context';
 import { Call, ToggleWithText, CheckboxWithText } from '../';
-
-import './CallList.scss';
 import {
   getLastMonthCalls,
   getLastWeekCalls,
   getTodayCalls,
   getYesterdayCalls,
 } from '../call/call.utils';
+
+import './CallList.scss';
 
 export const CallList = (): JSX.Element => {
   const storeContext = useContext<StoreContextInterface>(StoreContext);
@@ -29,6 +31,9 @@ export const CallList = (): JSX.Element => {
   const pageSize = 10;
   const [paginatedCalls] = useLazyQuery<PaginatedCallsResponseInterface>(
     PAGINATED_CALLS_QUERY
+  );
+  const [archiveCall] = useMutation<ArchiveCallResponseInterface>(
+    ARCHIVE_CALL_MUTATION
   );
 
   const handlePaginationChange = (_evt: unknown, newPage: number) => {
@@ -44,6 +49,26 @@ export const CallList = (): JSX.Element => {
   const handleSelectAllCallsChange = (newValue: boolean) => {
     if (newValue) setSelectedCalls(callList.map((c) => c.id));
     else setSelectedCalls([]);
+  };
+  const handleArchiveCalls = () => {
+    const promises: Promise<FetchResult<ArchiveCallResponseInterface>>[] = [];
+    for (const archiveCallId of selectedCalls) {
+      promises.push(archiveCall({ variables: { archiveCallId } }));
+    }
+    void Promise.all(promises).then((responses) => {
+      setSelectedCalls([]);
+      const results = responses.map((response) => response.data?.archiveCall);
+      setCallList(
+        callList.map((call: CallInterface) => {
+          const result = results.find((r) => r?.id === call.id);
+          if (!result) return call;
+          return {
+            ...call,
+            is_archived: result.is_archived,
+          };
+        })
+      );
+    });
   };
 
   const sortByDate = (callA: CallInterface, callB: CallInterface): number => {
@@ -145,6 +170,14 @@ export const CallList = (): JSX.Element => {
           )}
         </Stack>
       )}
+      <div className='call-list__actions'>
+        <Button
+          variant='contained'
+          onClick={handleArchiveCalls}
+        >
+          Toggle archive selected calls
+        </Button>
+      </div>
     </div>
   );
 };

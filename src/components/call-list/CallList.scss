@@ -28,4 +28,14 @@
   &__stack {
     overflow-y: auto;
   }
+
+  &__actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+
+    button {
+      background-color: #83b2ee;
+    }
+  }
 }

@@ -13,6 +13,7 @@ export const PAGINATED_CALLS_QUERY = gql(`
         duration
         call_type
         created_at
+        is_archived
       }
     }
   }
