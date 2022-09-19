@@ -1,13 +1,16 @@
 import React, { useContext, useEffect } from 'react';
-import { useMutation } from '@apollo/client';
+import { useMutation, useLazyQuery } from '@apollo/client';
 
 import { LOGIN_MUTATION } from './graphql/mutations';
-import { StoreContext } from './contexts/store.context';
+import { PAGINATED_CALLS_QUERY } from './graphql/queries';
 import {
   LoginResponseInterface,
   LoginParamsInterface,
+  PaginatedCallsResponseInterface,
 } from './graphql/interfaces';
 import { StoreContextInterface } from './shared/interfaces';
+import { StoreContext } from './contexts/store.context';
+import { ACCESS_TOKEN_STORAGE, REFRESH_TOKEN_STORAGE } from './constants';
 import { isNullOrEmpty } from './shared/utils';
 
 import './App.scss';
@@ -15,6 +18,9 @@ import './App.scss';
 function App(): JSX.Element {
   const storeContext = useContext<StoreContextInterface>(StoreContext);
   const [login] = useMutation<LoginResponseInterface>(LOGIN_MUTATION);
+  const [paginatedCalls] = useLazyQuery<PaginatedCallsResponseInterface>(
+    PAGINATED_CALLS_QUERY
+  );
 
   useEffect(() => {
     const loginParams: LoginParamsInterface = {
@@ -26,7 +32,20 @@ function App(): JSX.Element {
     login({ variables: loginParams })
       .then((result) => {
         console.log('Login success!', result.data);
+        sessionStorage.setItem(
+          ACCESS_TOKEN_STORAGE,
+          result.data?.login.access_token ?? ''
+        );
+        sessionStorage.setItem(
+          REFRESH_TOKEN_STORAGE,
+          result.data?.login.refresh_token ?? ''
+        );
         storeContext.changeCache({ login: result.data?.login });
+        paginatedCalls()
+          .then((result) => {
+            console.log('callsResult', result.data);
+          })
+          .catch((error) => console.log('error on paginatedCalls', error));
       })
       .catch((error) => console.log('error on login', error));
   }, []);
