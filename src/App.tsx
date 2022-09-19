@@ -1,26 +1,26 @@
 import React, { useContext, useEffect } from 'react';
-import { useMutation, useLazyQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 
 import { LOGIN_MUTATION } from './graphql/mutations';
-import { PAGINATED_CALLS_QUERY } from './graphql/queries';
 import {
   LoginResponseInterface,
   LoginParamsInterface,
-  PaginatedCallsResponseInterface,
 } from './graphql/interfaces';
-import { StoreContextInterface } from './shared/interfaces';
+import { SnackbarInterface, StoreContextInterface } from './shared/interfaces';
 import { StoreContext } from './contexts/store.context';
 import { ACCESS_TOKEN_STORAGE, REFRESH_TOKEN_STORAGE } from './constants';
-import { isNullOrEmpty } from './shared/utils';
+import { CallList } from './components';
 
 import './App.scss';
+import { SimpleSnackbar } from './components/snackbar/SimpleSnackbar';
 
 function App(): JSX.Element {
   const storeContext = useContext<StoreContextInterface>(StoreContext);
   const [login] = useMutation<LoginResponseInterface>(LOGIN_MUTATION);
-  const [paginatedCalls] = useLazyQuery<PaginatedCallsResponseInterface>(
-    PAGINATED_CALLS_QUERY
-  );
+
+  const setShowSnackbar = (snackbar: SnackbarInterface): void => {
+    if (storeContext) storeContext.changeSnackbar(snackbar);
+  };
 
   useEffect(() => {
     const loginParams: LoginParamsInterface = {
@@ -41,16 +41,9 @@ function App(): JSX.Element {
           result.data?.login.refresh_token ?? ''
         );
         storeContext.changeCache({ login: result.data?.login });
-        paginatedCalls()
-          .then((result) => {
-            console.log('callsResult', result.data);
-          })
-          .catch((error) => console.log('error on paginatedCalls', error));
       })
       .catch((error) => console.log('error on login', error));
   }, []);
-
-  const access_token = storeContext.cache.login?.access_token;
 
   return (
     <div className='app-container'>
@@ -58,9 +51,15 @@ function App(): JSX.Element {
         <h1>Phone Application - Proof of concept for Aircall</h1>
       </header>
       <main>
-        Access token: {isNullOrEmpty(access_token) ? '' : access_token}
+        <CallList />
       </main>
       <footer>Proof of concept by David Díez for Aircall</footer>
+      {storeContext && storeContext.snackbar && (
+        <SimpleSnackbar
+          snackbar={storeContext.snackbar}
+          setShowSnackbar={setShowSnackbar}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,57 @@
+.text-snackbar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  &__title {
+    color: white;
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  &__message {
+    color: white;
+    font-size: 0.9rem;
+  }
+
+  svg {
+    margin-right: 15px;
+  }
+
+  span:first-child {
+    margin-right: 10px;
+    font-size: 20px;
+  }
+}
+
+.error .MuiSnackbarContent-root {
+  background: #db3f1d;
+}
+
+.success .MuiSnackbarContent-root {
+  background: #30924b;
+}
+
+.warning .MuiSnackbarContent-root {
+  background: orange;
+}
+
+.info .MuiSnackbarContent-root {
+  background: lightskyblue;
+}
+
+.MuiSnackbarContent-message {
+  padding: 20px 20px !important;
+}
+
+.MuiSnackbarContent-action {
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+
+  .MuiButtonBase-root.MuiIconButton-root {
+    color: white;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}

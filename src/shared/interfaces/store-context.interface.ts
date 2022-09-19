@@ -1,4 +1,5 @@
 import { UserInterface } from '../../graphql/interfaces';
+import { SnackbarInterface } from './snackbar.interface';
 
 export interface CacheInterface {
   login?: {
@@ -10,5 +11,7 @@ export interface CacheInterface {
 
 export interface StoreContextInterface {
   cache: CacheInterface;
+  snackbar?: SnackbarInterface;
   changeCache: (newCache: Partial<CacheInterface>) => void;
+  changeSnackbar: (snackbar: SnackbarInterface) => void;
 }

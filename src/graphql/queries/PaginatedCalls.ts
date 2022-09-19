@@ -1,8 +1,10 @@
 import { gql } from '@apollo/client';
 
 export const PAGINATED_CALLS_QUERY = gql(`
-  query PaginatedCalls {
-    paginatedCalls {
+  query PaginatedCalls($offset: Float, $limit: Float) {
+    paginatedCalls(offset: $offset, limit: $limit) {
+      totalCount
+      hasNextPage
       nodes {
         id
         direction
@@ -18,8 +20,6 @@ export const PAGINATED_CALLS_QUERY = gql(`
           content
         }
       }
-      totalCount
-      hasNextPage
     }
   }
 `);

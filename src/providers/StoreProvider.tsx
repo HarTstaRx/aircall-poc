@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import React, { useState } from 'react';
 
-import { StoreContextInterface, CacheInterface } from '../shared/interfaces';
+import {
+  StoreContextInterface,
+  CacheInterface,
+  SnackbarInterface,
+} from '../shared/interfaces';
 import { StoreContext } from '../contexts/store.context';
 
 interface Props {
@@ -10,6 +14,13 @@ interface Props {
 
 export default function StoreProvider(props: Props): JSX.Element {
   const { children } = props;
+
+  const changeSnackbar = (snackbar: SnackbarInterface): void => {
+    setContext((contextState) => ({
+      ...contextState,
+      snackbar,
+    }));
+  };
 
   const changeCache = (newCache: Partial<CacheInterface>): void => {
     setContext(
@@ -23,7 +34,9 @@ export default function StoreProvider(props: Props): JSX.Element {
 
   const [context, setContext] = useState<StoreContextInterface>({
     cache: {},
+    snackbar: undefined,
     changeCache,
+    changeSnackbar,
   });
 
   const contextValue = {
