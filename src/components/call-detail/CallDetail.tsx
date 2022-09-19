@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLazyQuery } from '@apollo/client';
+import { Edit, Delete } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
 
 import { CALL_QUERY } from '../../graphql/queries';
 import {
@@ -12,27 +14,42 @@ import {
   getIconFromCall,
   getSummary,
 } from '../call/call.utils';
+import { getShortDateString, getShortTimeString } from '../call/date.utils';
+import { CreateNote } from '..';
+import { randomId } from '../../shared/utils';
 
 import './CallDetail.scss';
-import { getShortDateString, getShortTimeString } from '../call/date.utils';
-import { Edit, Delete } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
 
 interface Props {
   callId: string;
-  handleEditNote: (noteId: string) => void;
-  handleDeleteNote: (noteId: string) => void;
 }
-export const CallDetail = ({
-  callId,
-  handleEditNote,
-  handleDeleteNote,
-}: Props): JSX.Element => {
+export const CallDetail = ({ callId }: Props): JSX.Element => {
   const [getCallDetail, { loading }] =
     useLazyQuery<CallDetailResponseInterface>(CALL_QUERY);
   const [callDetail, setCallDetail] = useState<
     CallDetailInterface | undefined
   >();
+
+  const handleCreateNote = (newNoteContent: string) => {
+    if (callDetail)
+      setCallDetail({
+        ...callDetail,
+        notes: [
+          ...callDetail.notes,
+          {
+            id: randomId(),
+            content: newNoteContent,
+          },
+        ],
+      });
+  };
+
+  const handleEditNote = (noteId: string) => {
+    console.log('editing', noteId);
+  };
+  const handleDeleteNote = (noteId: string) => {
+    console.log('deleting', noteId);
+  };
 
   useEffect(() => {
     void getCallDetail({ variables: { callId } }).then((result) => {
@@ -48,12 +65,18 @@ export const CallDetail = ({
       {loading && 'Loading...'}
       {callDetail && (
         <>
-          <span
-            className={`call-detail__icon ${getColorClassname(callDetail)}`}
-          >
-            {React.createElement(getIconFromCall(callDetail))}
+          <span className='call-detail__title'>
+            <span
+              className={`call-detail__title__icon ${getColorClassname(
+                callDetail
+              )}`}
+            >
+              {React.createElement(getIconFromCall(callDetail))}
+            </span>
+            <span className='call-detail__title__summary'>
+              {getSummary(callDetail)}
+            </span>
           </span>
-          <span className='call-detail__summary'>{getSummary(callDetail)}</span>
           <span className='call-detail__when'>
             {`When: ${getShortDateString(
               new Date(callDetail.created_at)
@@ -67,25 +90,31 @@ export const CallDetail = ({
           <span className='call-detail__via'>
             This call was made via {callDetail.via}
           </span>
-          {callDetail.notes.length > 0 && (
-            <div className='call-detail__notes'>
-              <span className='detail__notes__title'>Notes:</span>
-              {callDetail.notes.map((note: NoteInterface) => (
-                <div
-                  key={note.id}
-                  className='call-note'
-                >
-                  <span>{note.content}</span>
+          <div className='call-detail__notes'>
+            <span className='call-detail__notes__title'>Notes:</span>
+            {callDetail.notes.map((note: NoteInterface) => (
+              <div
+                key={note.id}
+                className='call-note'
+              >
+                <span>{note.content}</span>
+                <span className='call-note__actions'>
                   <IconButton onClick={() => handleEditNote(note.id)}>
                     <Edit />
                   </IconButton>
                   <IconButton onClick={() => handleDeleteNote(note.id)}>
                     <Delete />
                   </IconButton>
-                </div>
-              ))}
-            </div>
-          )}
+                </span>
+              </div>
+            ))}
+            {callDetail.notes.length === 0 && (
+              <div className='call-detail__notes__empty'>
+                There are currently no notes for this call. Add one!
+              </div>
+            )}
+            <CreateNote handleCreateNote={handleCreateNote} />
+          </div>
         </>
       )}
     </div>

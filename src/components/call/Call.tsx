@@ -13,12 +13,7 @@ import {
   getColorClassname,
 } from './call.utils';
 
-interface Props extends CallInterface {
-  handleEditNote: (noteId: string) => void;
-  handleDeleteNote: (noteId: string) => void;
-}
-
-export const Call = (call: Props): JSX.Element => {
+export const Call = (call: CallInterface): JSX.Element => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const handleShowMore = () => {
@@ -48,11 +43,7 @@ export const Call = (call: Props): JSX.Element => {
         open={showDetail}
         onClose={() => setShowDetail(false)}
       >
-        <CallDetail
-          callId={call.id}
-          handleEditNote={call.handleEditNote}
-          handleDeleteNote={call.handleDeleteNote}
-        />
+        <CallDetail callId={call.id} />
       </Dialog>
     </div>
   );
