@@ -75,3 +75,22 @@ export const getSummary = (call: CallInterface): string => {
       return `You leaved a voicemail to ${call.to}`;
   }
 };
+
+export const getTodayCalls = (calls: CallInterface[]): CallInterface[] => {
+  return calls.filter((c) => isToday(new Date(c.created_at)));
+};
+
+export const getYesterdayCalls = (calls: CallInterface[]): CallInterface[] => {
+  return calls.filter((c) => isYesterday(new Date(c.created_at)));
+};
+
+export const getLastWeekCalls = (calls: CallInterface[]): CallInterface[] => {
+  return calls.filter((c) => {
+    const created = new Date(c.created_at);
+    return !isToday(created) && !isYesterday(created) && isLastWeek(created);
+  });
+};
+
+export const getLastMonthCalls = (calls: CallInterface[]): CallInterface[] => {
+  return calls.filter((c) => !isLastWeek(new Date(c.created_at)));
+};
