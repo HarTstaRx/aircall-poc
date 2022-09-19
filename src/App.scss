@@ -52,8 +52,9 @@ main {
 
   @media (max-width: $smartphone-width) {
     justify-content: flex-start;
-    padding-top: 2rem;
-    height: calc(100vh - 9rem);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    height: calc(100vh - 11rem);
   }
 }
 

@@ -1,0 +1,58 @@
+@import '../../styles/variables';
+
+.call {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+
+  .call-left-group,
+  .call-right-group {
+    display: flex;
+    align-items: center;
+
+    :not(:last-child) {
+      margin-right: 0.2rem;
+    }
+  }
+
+  .call-left-group {
+    margin-right: 1rem;
+  }
+
+  &__icon {
+    display: flex;
+
+    &.missed {
+      color: #ff5c39;
+    }
+
+    &.answered {
+      color: #00b388;
+    }
+
+    &.voicemail {
+      color: #307fe2;
+    }
+  }
+
+  &__number {
+    font-size: 2rem;
+
+    @media (max-width: $tablet-width) {
+      font-size: 1.5rem;
+    }
+  }
+
+  &:not(:first-child) {
+    margin-top: 0.5rem;
+  }
+
+  &__detail button {
+    color: #83b2ee;
+
+    &:hover {
+      background-color: rgba($color: #83b2ee, $alpha: 0.1);
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLazyQuery } from '@apollo/client';
-import { Pagination } from '@mui/material';
+import { Pagination, Stack } from '@mui/material';
 
 import { PAGINATED_CALLS_QUERY } from '../../graphql/queries';
 import {
@@ -9,51 +9,67 @@ import {
 } from '../../graphql/interfaces';
 import { StoreContextInterface } from '../../shared/interfaces';
 import { StoreContext } from '../../contexts/store.context';
+import { Call } from '../';
+
+import './CallList.scss';
 
 export const CallList = (): JSX.Element => {
   const storeContext = useContext<StoreContextInterface>(StoreContext);
-  const [callList, setCallList] = useState<
-    PaginatedCallsResponseInterface | undefined
-  >();
+  const [callList, setCallList] = useState<CallInterface[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [page, setPage] = useState<number>(0);
+  const pageSize = 10;
   const [paginatedCalls] = useLazyQuery<PaginatedCallsResponseInterface>(
     PAGINATED_CALLS_QUERY
   );
-  const pageSize = 10;
 
-  const getCalls = (offset = 0) => {
-    if (!storeContext.cache.login) return;
-
-    void paginatedCalls({ variables: { offset, limit: pageSize } }).then(
-      (result) => {
-        setCallList(result.data);
-      }
-    );
+  const handlePaginationChange = (_evt: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
-  const handlePaginationChange = (_evt: unknown, page: number) => {
-    getCalls((page - 1) * pageSize);
+  const sortByDate = (callA: CallInterface, callB: CallInterface): number => {
+    const dateA = Date.parse(callA.created_at);
+    const dateB = Date.parse(callB.created_at);
+
+    return dateB - dateA;
   };
 
   useEffect(() => {
-    getCalls();
+    if (!storeContext.cache.login) return;
+
+    // DAVID: We could avoid hardcoding the limit value if the server offered some kind of filtering by date
+    void paginatedCalls({ variables: { offset: 0, limit: 500 } }).then(
+      (result) => {
+        if (result.data && result.data.paginatedCalls) {
+          setCallList(result.data.paginatedCalls.nodes);
+          setTotal(
+            Math.floor((result.data.paginatedCalls.totalCount ?? 0) / pageSize)
+          );
+        }
+      }
+    );
   }, [storeContext.cache]);
 
-  const total = Math.ceil(
-    (callList?.paginatedCalls.totalCount ?? 0) / pageSize
-  );
-
   return (
-    <section className='call-list'>
+    <div className='call-list'>
       <Pagination
         count={total}
         variant='outlined'
         shape='rounded'
         onChange={handlePaginationChange}
+        className='call-list__pagination'
       />
-      {callList &&
-        callList.paginatedCalls.nodes.map((call: CallInterface) => (
-          <div key={call.id}>{call.id}</div>
-        ))}
-    </section>
+      <Stack className='call-list__stack'>
+        {[...callList]
+          .sort(sortByDate)
+          .slice(page * pageSize, page * pageSize + pageSize)
+          .map((call: CallInterface) => (
+            <Call
+              key={call.id}
+              {...call}
+            />
+          ))}
+      </Stack>
+    </div>
   );
 };

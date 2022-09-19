@@ -31,7 +31,6 @@ function App(): JSX.Element {
     };
     login({ variables: loginParams })
       .then((result) => {
-        console.log('Login success!', result.data);
         sessionStorage.setItem(
           ACCESS_TOKEN_STORAGE,
           result.data?.login.access_token ?? ''

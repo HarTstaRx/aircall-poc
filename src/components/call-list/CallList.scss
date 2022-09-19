@@ -1,0 +1,24 @@
+@import '../../styles/variables';
+
+.call-list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  width: fit-content;
+
+  &__pagination {
+    margin-top: 2rem;
+
+    ul {
+      justify-content: space-between;
+    }
+
+    @media (max-width: $smartphone-width) {
+      margin-top: 0rem;
+    }
+  }
+
+  &__stack {
+    overflow-y: auto;
+  }
+}
