@@ -11,14 +11,8 @@ export const PAGINATED_CALLS_QUERY = gql(`
         from
         to
         duration
-        via
-        is_archived
         call_type
         created_at
-        notes {
-          id
-          content
-        }
       }
     }
   }
