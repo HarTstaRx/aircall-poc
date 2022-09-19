@@ -1,4 +1,4 @@
-import { CallInterface } from './call.interface';
+import { CallInterface } from '../call.interface';
 
 export interface PaginatedCallsResponseInterface {
   paginatedCalls: {

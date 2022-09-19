@@ -1,4 +1,4 @@
-import { ErrorInterface } from './error.interface';
+import { ErrorInterface } from '../error.interface';
 
 export interface GraphResponseInterface<T> {
   data: T;
