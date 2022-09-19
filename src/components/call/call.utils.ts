@@ -45,3 +45,15 @@ export const getIconFromCall = (call: CallInterface) => {
       return Error;
   }
 };
+export const getColorClassname = (call: CallInterface): string => {
+  switch (call.call_type) {
+    case CallTypeEnum.MISSED:
+      return 'missed';
+    case CallTypeEnum.ANSWERED:
+      return 'answered';
+    case CallTypeEnum.VOICEMAIL:
+      return 'voicemail';
+    default:
+      return '';
+  }
+};
