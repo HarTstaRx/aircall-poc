@@ -9,7 +9,7 @@ import {
 } from '../../graphql/interfaces';
 import { StoreContextInterface } from '../../shared/interfaces';
 import { StoreContext } from '../../contexts/store.context';
-import { Call, ToggleWithText } from '../';
+import { Call, ToggleWithText, CheckboxWithText } from '../';
 
 import './CallList.scss';
 import {
@@ -25,6 +25,7 @@ export const CallList = (): JSX.Element => {
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(0);
   const [groupByDate, setGroupByDate] = useState<boolean>(false);
+  const [selectedCalls, setSelectedCalls] = useState<string[]>([]);
   const pageSize = 10;
   const [paginatedCalls] = useLazyQuery<PaginatedCallsResponseInterface>(
     PAGINATED_CALLS_QUERY
@@ -32,6 +33,17 @@ export const CallList = (): JSX.Element => {
 
   const handlePaginationChange = (_evt: unknown, newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleSelectedCallChange = (callId: string, newValue: boolean) => {
+    if (selectedCalls.includes(callId) && !newValue)
+      setSelectedCalls(selectedCalls.filter((id) => id !== callId));
+    else if (!selectedCalls.includes(callId) && newValue)
+      setSelectedCalls([...selectedCalls, callId]);
+  };
+  const handleSelectAllCallsChange = (newValue: boolean) => {
+    if (newValue) setSelectedCalls(callList.map((c) => c.id));
+    else setSelectedCalls([]);
   };
 
   const sortByDate = (callA: CallInterface, callB: CallInterface): number => {
@@ -48,6 +60,8 @@ export const CallList = (): JSX.Element => {
         <Call
           key={call.id}
           {...call}
+          isSelected={selectedCalls.includes(call.id)}
+          onSelectedChange={handleSelectedCallChange}
         />
       ));
   };
@@ -75,10 +89,16 @@ export const CallList = (): JSX.Element => {
 
   return (
     <div className='call-list'>
-      <ToggleWithText
-        text='Group calls by date'
-        onChange={setGroupByDate}
-      />
+      <div className='call-list__options'>
+        <CheckboxWithText
+          text='Select all'
+          onChange={handleSelectAllCallsChange}
+        />
+        <ToggleWithText
+          text='Group calls by date'
+          onChange={setGroupByDate}
+        />
+      </div>
       {!groupByDate && (
         <>
           <Pagination

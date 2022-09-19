@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Info } from '@mui/icons-material';
-import { IconButton, Dialog } from '@mui/material';
+import { IconButton, Dialog, Checkbox } from '@mui/material';
 
 import { CallInterface } from '../../graphql/interfaces';
 import { CallDetail } from '../call-detail/CallDetail';
@@ -13,11 +13,20 @@ import {
   getColorClassname,
 } from './call.utils';
 
-export const Call = (call: CallInterface): JSX.Element => {
+interface Props extends CallInterface {
+  isSelected: boolean;
+  onSelectedChange: (callId: string, newValue: boolean) => void;
+}
+
+export const Call = (call: Props): JSX.Element => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const handleShowMore = () => {
     setShowDetail(true);
+  };
+
+  const handleSelected = (newValue: boolean) => {
+    call.onSelectedChange(call.id, newValue);
   };
 
   return (
@@ -26,6 +35,12 @@ export const Call = (call: CallInterface): JSX.Element => {
       className='call'
     >
       <div className='call-left-group'>
+        <span className='call__selected'>
+          <Checkbox
+            checked={call.isSelected}
+            onChange={(_evt, checked) => handleSelected(checked)}
+          />
+        </span>
         <span className={`call__icon ${getColorClassname(call)}`}>
           {React.createElement(getIconFromCall(call))}
         </span>

@@ -7,6 +7,12 @@
   width: fit-content;
   height: 80vh;
 
+  &__options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   &__pagination {
     margin-top: 2rem;
 

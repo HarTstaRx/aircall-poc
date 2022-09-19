@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  margin-top: 0.5rem;
 
   .call-left-group,
   .call-right-group {
@@ -18,6 +18,13 @@
 
   .call-left-group {
     margin-right: 1rem;
+  }
+
+  &__selected {
+    display: flex;
+    .MuiCheckbox-root {
+      padding-left: 0px;
+    }
   }
 
   &__icon {
@@ -42,10 +49,6 @@
     @media (max-width: $tablet-width) {
       font-size: 1.5rem;
     }
-  }
-
-  &:not(:first-child) {
-    margin-top: 0.5rem;
   }
 
   &__detail button {
