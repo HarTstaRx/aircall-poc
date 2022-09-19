@@ -1,0 +1,21 @@
+.call-detail {
+  display: flex;
+  flex-direction: column;
+  margin: 2rem;
+
+  &__icon {
+    display: flex;
+
+    &.missed {
+      color: #ff5c39;
+    }
+
+    &.answered {
+      color: #00b388;
+    }
+
+    &.voicemail {
+      color: #307fe2;
+    }
+  }
+}

@@ -57,3 +57,21 @@ export const getColorClassname = (call: CallInterface): string => {
       return '';
   }
 };
+
+export const getSummary = (call: CallInterface): string => {
+  switch (call.call_type) {
+    case CallTypeEnum.MISSED:
+      if (call.direction === 'inbound') {
+        return `You missed a call from ${call.from}`;
+      }
+      return `You tried to reach to ${call.to}`;
+    case CallTypeEnum.ANSWERED:
+      if (call.direction === 'inbound')
+        return `You answered a call from ${call.from}`;
+      return `You made a call to ${call.to}`;
+    case CallTypeEnum.VOICEMAIL:
+      if (call.direction === 'inbound')
+        return `You received a voicemail from ${call.from}`;
+      return `You leaved a voicemail to ${call.to}`;
+  }
+};

@@ -34,6 +34,13 @@ export const CallList = (): JSX.Element => {
     return dateB - dateA;
   };
 
+  const handleEditNote = (noteId: string) => {
+    console.log('editing', noteId);
+  };
+  const handleDeleteNote = (noteId: string) => {
+    console.log('deleting', noteId);
+  };
+
   useEffect(() => {
     if (!storeContext.cache.login) return;
 
@@ -67,6 +74,8 @@ export const CallList = (): JSX.Element => {
             <Call
               key={call.id}
               {...call}
+              handleEditNote={handleEditNote}
+              handleDeleteNote={handleDeleteNote}
             />
           ))}
       </Stack>
