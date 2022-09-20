@@ -10,7 +10,7 @@
     "build:public": "node ./scripts/public.js",
     "build:ts": "tsc --project ./config/tsconfig.json -noEmit --jsx preserve",
     "build:bundle": "node ./scripts/build.js",
-    "build": "yarn run build:clean && yarn run build:public && yarn run build:ts && yarn run build:bundle && yarn run lint && yarn run test",
+    "build": "yarn run build:clean && yarn run build:public && yarn run build:ts && yarn run build:bundle && yarn run lint",
     "start:server": "node ./scripts/start.js",
     "start": "yarn run build && yarn run start:server",
     "test": "jest -c ./config/jest.config.json -u"
