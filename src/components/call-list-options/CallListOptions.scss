@@ -1,0 +1,11 @@
+.call-list {
+  &__options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.call-filter ul li svg {
+  margin-right: 1rem;
+}

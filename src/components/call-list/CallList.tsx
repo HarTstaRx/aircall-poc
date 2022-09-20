@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
+} from 'react';
 import { FetchResult, useLazyQuery, useMutation } from '@apollo/client';
-import {
-  Pagination,
-  Stack,
-  Divider,
-  Button,
-  Menu,
-  MenuItem,
-} from '@mui/material';
+import { Pagination, Stack, Divider, Button } from '@mui/material';
 
 import { PAGINATED_CALLS_QUERY } from '../../graphql/queries';
 import { ARCHIVE_CALL_MUTATION } from '../../graphql/mutations';
@@ -18,7 +17,7 @@ import {
 } from '../../graphql/interfaces';
 import { StoreContextInterface } from '../../shared/interfaces';
 import { StoreContext } from '../../contexts/store.context';
-import { Call, ToggleWithText, CheckboxWithText } from '../';
+import { Call, CallListOptions } from '../';
 import {
   getLastMonthCalls,
   getLastWeekCalls,
@@ -26,8 +25,6 @@ import {
   getYesterdayCalls,
   sortByDate,
 } from '../call/call.utils';
-import { CallTypeEnum } from '../../graphql/enums/call-type.enum';
-import { partialCall } from '../../shared/utils';
 
 import './CallList.scss';
 
@@ -41,7 +38,6 @@ export const CallList = (): JSX.Element => {
   const [selectAll, setSelectAll] = useState<boolean>(false);
   const [areFiltersActive, setAreFiltersActive] = useState<boolean>(false);
   const [selectedCalls, setSelectedCalls] = useState<string[]>([]);
-  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
 
   const [paginatedCalls] = useLazyQuery<PaginatedCallsResponseInterface>(
     PAGINATED_CALLS_QUERY
@@ -86,49 +82,16 @@ export const CallList = (): JSX.Element => {
     });
   };
 
-  const filterSideEffects = (filtered: CallInterface[], areActive = true) => {
-    setAreFiltersActive(areActive);
-    setGroupByDate(false);
-    setCallListFiltered(filtered);
-    setTotal(Math.ceil(filtered.length / pageSize));
-  };
-  const handleFilterNone = () => {
-    filterSideEffects(callList.current, false);
-  };
-  const handleFilterByArchive = (archived: boolean) => {
-    const filtered = callList.current.filter((c) => c.is_archived === archived);
-    filterSideEffects(filtered);
-  };
-  const handleFilterByType = (callType: CallTypeEnum) => {
-    const filtered = callList.current.filter((c) => c.call_type === callType);
-    filterSideEffects(filtered);
-  };
-  const handleFilterByDate = (
-    callFilterFn: (calls: CallInterface[]) => CallInterface[]
-  ) => {
-    const filtered = callFilterFn(callList.current);
-    filterSideEffects(filtered);
-  };
-  const handleFilterByDateToday = partialCall(
-    handleFilterByDate,
-    getTodayCalls
+  const filterSideEffects = useCallback(
+    (filtered: CallInterface[], areActive = true) => {
+      console.log(filtered);
+      setAreFiltersActive(areActive);
+      setGroupByDate(false);
+      setCallListFiltered(filtered);
+      setTotal(Math.ceil(filtered.length / pageSize));
+    },
+    [callListFiltered, total]
   );
-  const handleFilterByDateYesterday = partialCall(
-    handleFilterByDate,
-    getYesterdayCalls
-  );
-  const handleFilterByDateLastWeek = partialCall(
-    handleFilterByDate,
-    getLastWeekCalls
-  );
-  const handleFilterByDateLastMonth = partialCall(
-    handleFilterByDate,
-    getLastMonthCalls
-  );
-  const handleFilterByDirection = (direction: 'inbound' | 'outbound') => {
-    const filtered = callList.current.filter((c) => c.direction === direction);
-    filterSideEffects(filtered);
-  };
 
   const printCalls = (calls: CallInterface[]): JSX.Element[] => {
     return calls.map((call: CallInterface) => (
@@ -178,54 +141,13 @@ export const CallList = (): JSX.Element => {
 
   return (
     <div className='call-list'>
-      <div className='call-list__options'>
-        <CheckboxWithText
-          text='Select all'
-          onChange={handleSelectAllCallsChange}
-          checked={selectAll}
-        />
-        <ToggleWithText
-          text='Group calls by date'
-          onChange={setGroupByDate}
-        />
-        <Button onClick={(evt) => setFilterAnchor(evt.currentTarget)}>
-          Filter
-        </Button>
-        <Menu
-          anchorEl={filterAnchor}
-          open={filterAnchor !== null}
-          onClose={() => setFilterAnchor(null)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        >
-          <MenuItem onClick={() => handleFilterNone()}>All</MenuItem>
-          <MenuItem onClick={() => handleFilterByArchive(true)}>
-            Archived
-          </MenuItem>
-          <MenuItem onClick={() => handleFilterByArchive(false)}>
-            Not archived
-          </MenuItem>
-          <MenuItem onClick={() => handleFilterByType(CallTypeEnum.MISSED)}>
-            Missed
-          </MenuItem>
-          <MenuItem onClick={() => handleFilterByType(CallTypeEnum.ANSWERED)}>
-            Answered
-          </MenuItem>
-          <MenuItem onClick={() => handleFilterByType(CallTypeEnum.VOICEMAIL)}>
-            Voicemail
-          </MenuItem>
-          <MenuItem onClick={() => handleFilterByDirection('inbound')}>
-            Inbound
-          </MenuItem>
-          <MenuItem onClick={() => handleFilterByDirection('outbound')}>
-            Outbound
-          </MenuItem>
-          <MenuItem onClick={handleFilterByDateToday}>Today</MenuItem>
-          <MenuItem onClick={handleFilterByDateYesterday}>Yesterday</MenuItem>
-          <MenuItem onClick={handleFilterByDateLastWeek}>Last week</MenuItem>
-          <MenuItem onClick={handleFilterByDateLastMonth}>Last month</MenuItem>
-        </Menu>
-      </div>
+      <CallListOptions
+        callList={callList.current}
+        handleArchived={selectAll}
+        handleSelectAll={handleSelectAllCallsChange}
+        handleGroupByDate={setGroupByDate}
+        handleFilterSideEffects={filterSideEffects}
+      />
       {!groupByDate && (
         <>
           <Pagination
