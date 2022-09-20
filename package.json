@@ -1,5 +1,5 @@
 {
-  "name": "kodify-poc-client",
+  "name": "aircall-poc",
   "version": "1.0.0",
   "main": "www/bundle.js",
   "license": "MIT",
