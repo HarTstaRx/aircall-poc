@@ -27,14 +27,14 @@ export const CallList = (): JSX.Element => {
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(0);
   const [groupByDate, setGroupByDate] = useState<boolean>(false);
+  const [selectAll, setSelectAll] = useState<boolean>(false);
   const [selectedCalls, setSelectedCalls] = useState<string[]>([]);
   const pageSize = 10;
   const [paginatedCalls] = useLazyQuery<PaginatedCallsResponseInterface>(
     PAGINATED_CALLS_QUERY
   );
-  const [archiveCall] = useMutation<ArchiveCallResponseInterface>(
-    ARCHIVE_CALL_MUTATION
-  );
+  const [archiveCall, { loading: loadingArchive }] =
+    useMutation<ArchiveCallResponseInterface>(ARCHIVE_CALL_MUTATION);
 
   const handlePaginationChange = (_evt: unknown, newPage: number) => {
     setPage(newPage);
@@ -47,6 +47,7 @@ export const CallList = (): JSX.Element => {
       setSelectedCalls([...selectedCalls, callId]);
   };
   const handleSelectAllCallsChange = (newValue: boolean) => {
+    setSelectAll(newValue);
     if (newValue) setSelectedCalls(callList.map((c) => c.id));
     else setSelectedCalls([]);
   };
@@ -57,6 +58,7 @@ export const CallList = (): JSX.Element => {
     }
     void Promise.all(promises).then((responses) => {
       setSelectedCalls([]);
+      setSelectAll(false);
       const results = responses.map((response) => response.data?.archiveCall);
       setCallList(
         callList.map((call: CallInterface) => {
@@ -118,6 +120,7 @@ export const CallList = (): JSX.Element => {
         <CheckboxWithText
           text='Select all'
           onChange={handleSelectAllCallsChange}
+          checked={selectAll}
         />
         <ToggleWithText
           text='Group calls by date'
@@ -174,6 +177,7 @@ export const CallList = (): JSX.Element => {
         <Button
           variant='contained'
           onClick={handleArchiveCalls}
+          disabled={selectedCalls.length === 0 || loadingArchive}
         >
           Toggle archive selected calls
         </Button>
