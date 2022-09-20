@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { FetchResult, useLazyQuery, useMutation } from '@apollo/client';
-import { Pagination, Stack, Divider, Button } from '@mui/material';
+import { Pagination, Stack, Button } from '@mui/material';
 
 import { PAGINATED_CALLS_QUERY } from '../../graphql/queries';
 import { ARCHIVE_CALL_MUTATION } from '../../graphql/mutations';
@@ -17,14 +17,8 @@ import {
 } from '../../graphql/interfaces';
 import { StoreContextInterface } from '../../shared/interfaces';
 import { StoreContext } from '../../contexts/store.context';
-import { Call, CallListOptions } from '../';
-import {
-  getLastMonthCalls,
-  getLastWeekCalls,
-  getTodayCalls,
-  getYesterdayCalls,
-  sortByDate,
-} from '../call/call.utils';
+import { Call, CallListGrouped, CallListOptions } from '../';
+import { sortByDate } from '../call/call.utils';
 
 import './CallList.scss';
 
@@ -84,11 +78,11 @@ export const CallList = (): JSX.Element => {
 
   const filterSideEffects = useCallback(
     (filtered: CallInterface[], areActive = true) => {
-      console.log(filtered);
       setAreFiltersActive(areActive);
       setGroupByDate(false);
       setCallListFiltered(filtered);
       setTotal(Math.ceil(filtered.length / pageSize));
+      setPage(0);
     },
     [callListFiltered, total]
   );
@@ -105,10 +99,6 @@ export const CallList = (): JSX.Element => {
   };
 
   const pageSize = 10;
-  const todayCalls = getTodayCalls(callList.current).sort(sortByDate);
-  const yesterdayCalls = getYesterdayCalls(callList.current).sort(sortByDate);
-  const lastWeekCalls = getLastWeekCalls(callList.current).sort(sortByDate);
-  const lastMonthCalls = getLastMonthCalls(callList.current).sort(sortByDate);
 
   useEffect(() => setPage(0), [groupByDate]);
 
@@ -156,6 +146,7 @@ export const CallList = (): JSX.Element => {
             shape='rounded'
             onChange={handlePaginationChange}
             className='call-list__pagination'
+            page={page + 1}
           />
           <Stack className='call-list__stack'>
             {printCalls(
@@ -167,36 +158,11 @@ export const CallList = (): JSX.Element => {
         </>
       )}
       {groupByDate && (
-        <Stack className='call-list__stack grouped'>
-          {todayCalls.length > 0 && (
-            <>
-              <div className='call-list__stack__title'>Today</div>
-              {printCalls(todayCalls)}
-              <Divider />
-            </>
-          )}
-          {yesterdayCalls.length > 0 && (
-            <>
-              <div className='call-list__stack__title'>Yesterday</div>
-              {printCalls(yesterdayCalls)}
-              <Divider />
-            </>
-          )}
-          {lastWeekCalls.length > 0 && (
-            <>
-              <div className='call-list__stack__title'>Last week</div>
-              {printCalls(lastWeekCalls)}
-              <Divider />
-            </>
-          )}
-          {lastMonthCalls.length > 0 && (
-            <>
-              <div className='call-list__stack__title'>Last month</div>
-              {printCalls(lastMonthCalls)}
-              <Divider />
-            </>
-          )}
-        </Stack>
+        <CallListGrouped
+          callList={callList.current}
+          handleSelectedCallChange={handleSelectedCallChange}
+          isCallSelected={(callId: string) => selectedCalls.includes(callId)}
+        />
       )}
       <div className='call-list__actions'>
         <Button
