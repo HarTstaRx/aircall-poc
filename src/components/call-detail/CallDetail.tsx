@@ -103,10 +103,16 @@ export const CallDetail = ({ callId }: Props): JSX.Element => {
               >
                 <span>{note.content}</span>
                 <span className='call-note__actions'>
-                  <IconButton onClick={() => handleEditNote(note.id)}>
+                  <IconButton
+                    onClick={() => handleEditNote(note.id)}
+                    disabled={true}
+                  >
                     <Edit />
                   </IconButton>
-                  <IconButton onClick={() => handleDeleteNote(note.id)}>
+                  <IconButton
+                    onClick={() => handleDeleteNote(note.id)}
+                    disabled={true}
+                  >
                     <Delete />
                   </IconButton>
                 </span>

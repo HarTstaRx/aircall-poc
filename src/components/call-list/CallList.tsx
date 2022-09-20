@@ -39,6 +39,7 @@ export const CallList = (): JSX.Element => {
   const [page, setPage] = useState<number>(0);
   const [groupByDate, setGroupByDate] = useState<boolean>(false);
   const [selectAll, setSelectAll] = useState<boolean>(false);
+  const [areFiltersActive, setAreFiltersActive] = useState<boolean>(false);
   const [selectedCalls, setSelectedCalls] = useState<string[]>([]);
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
 
@@ -49,7 +50,7 @@ export const CallList = (): JSX.Element => {
     useMutation<ArchiveCallResponseInterface>(ARCHIVE_CALL_MUTATION);
 
   const handlePaginationChange = (_evt: unknown, newPage: number) => {
-    setPage(newPage);
+    setPage(newPage - 1);
   };
 
   const handleSelectedCallChange = (callId: string, newValue: boolean) => {
@@ -72,26 +73,27 @@ export const CallList = (): JSX.Element => {
       setSelectedCalls([]);
       setSelectAll(false);
       const results = responses.map((response) => response.data?.archiveCall);
-      setCallListFiltered(
-        callListFiltered.map((call: CallInterface) => {
-          const result = results.find((r) => r?.id === call.id);
-          if (!result) return call;
-          return {
-            ...call,
-            is_archived: result.is_archived,
-          };
-        })
-      );
+      let filtered = callListFiltered.map((call: CallInterface) => {
+        const result = results.find((r) => r?.id === call.id);
+        if (!result) return call;
+        return {
+          ...call,
+          is_archived: result.is_archived,
+        };
+      });
+      if (areFiltersActive) filtered = filtered.filter((c) => !c.is_archived);
+      setCallListFiltered(filtered);
     });
   };
 
-  const filterSideEffects = (filtered: CallInterface[]) => {
+  const filterSideEffects = (filtered: CallInterface[], areActive = true) => {
+    setAreFiltersActive(areActive);
     setGroupByDate(false);
     setCallListFiltered(filtered);
-    setTotal(Math.floor(filtered.length / pageSize));
+    setTotal(Math.ceil(filtered.length / pageSize));
   };
   const handleFilterNone = () => {
-    filterSideEffects(callList.current);
+    filterSideEffects(callList.current, false);
   };
   const handleFilterByArchive = (archived: boolean) => {
     const filtered = callList.current.filter((c) => c.is_archived === archived);
@@ -129,23 +131,23 @@ export const CallList = (): JSX.Element => {
   };
 
   const printCalls = (calls: CallInterface[]): JSX.Element[] => {
-    return calls
-      .slice(page * pageSize, page * pageSize + pageSize)
-      .map((call: CallInterface) => (
-        <Call
-          key={call.id}
-          {...call}
-          isSelected={selectedCalls.includes(call.id)}
-          onSelectedChange={handleSelectedCallChange}
-        />
-      ));
+    return calls.map((call: CallInterface) => (
+      <Call
+        key={call.id}
+        {...call}
+        isSelected={selectedCalls.includes(call.id)}
+        onSelectedChange={handleSelectedCallChange}
+      />
+    ));
   };
 
   const pageSize = 10;
-  const todayCalls = getTodayCalls(callList.current);
-  const yesterdayCalls = getYesterdayCalls(callList.current);
-  const lastWeekCalls = getLastWeekCalls(callList.current);
-  const lastMonthCalls = getLastMonthCalls(callList.current);
+  const todayCalls = getTodayCalls(callList.current).sort(sortByDate);
+  const yesterdayCalls = getYesterdayCalls(callList.current).sort(sortByDate);
+  const lastWeekCalls = getLastWeekCalls(callList.current).sort(sortByDate);
+  const lastMonthCalls = getLastMonthCalls(callList.current).sort(sortByDate);
+
+  useEffect(() => setPage(0), [groupByDate]);
 
   useEffect(() => {
     if (callListFiltered.length === 0) setCallListFiltered(callList.current);
@@ -167,7 +169,7 @@ export const CallList = (): JSX.Element => {
         if (result.data && result.data.paginatedCalls) {
           callList.current = result.data.paginatedCalls.nodes;
           setTotal(
-            Math.floor((result.data.paginatedCalls.totalCount ?? 0) / pageSize)
+            Math.ceil((result.data.paginatedCalls.totalCount ?? 0) / pageSize)
           );
         }
       }
@@ -207,7 +209,7 @@ export const CallList = (): JSX.Element => {
             Missed
           </MenuItem>
           <MenuItem onClick={() => handleFilterByType(CallTypeEnum.ANSWERED)}>
-            Answred
+            Answered
           </MenuItem>
           <MenuItem onClick={() => handleFilterByType(CallTypeEnum.VOICEMAIL)}>
             Voicemail
@@ -234,7 +236,11 @@ export const CallList = (): JSX.Element => {
             className='call-list__pagination'
           />
           <Stack className='call-list__stack'>
-            {printCalls([...callListFiltered].sort(sortByDate))}
+            {printCalls(
+              [...callListFiltered]
+                .sort(sortByDate)
+                .slice(page * pageSize, page * pageSize + pageSize)
+            )}
           </Stack>
         </>
       )}
