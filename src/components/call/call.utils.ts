@@ -94,3 +94,13 @@ export const getLastWeekCalls = (calls: CallInterface[]): CallInterface[] => {
 export const getLastMonthCalls = (calls: CallInterface[]): CallInterface[] => {
   return calls.filter((c) => !isLastWeek(new Date(c.created_at)));
 };
+
+export const sortByDate = (
+  callA: CallInterface,
+  callB: CallInterface
+): number => {
+  const dateA = Date.parse(callA.created_at);
+  const dateB = Date.parse(callB.created_at);
+
+  return dateB - dateA;
+};

@@ -1,6 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { FetchResult, useLazyQuery, useMutation } from '@apollo/client';
-import { Pagination, Stack, Divider, Button } from '@mui/material';
+import {
+  Pagination,
+  Stack,
+  Divider,
+  Button,
+  Menu,
+  MenuItem,
+} from '@mui/material';
 
 import { PAGINATED_CALLS_QUERY } from '../../graphql/queries';
 import { ARCHIVE_CALL_MUTATION } from '../../graphql/mutations';
@@ -17,19 +24,24 @@ import {
   getLastWeekCalls,
   getTodayCalls,
   getYesterdayCalls,
+  sortByDate,
 } from '../call/call.utils';
+import { CallTypeEnum } from '../../graphql/enums/call-type.enum';
+import { partialCall } from '../../shared/utils';
 
 import './CallList.scss';
 
 export const CallList = (): JSX.Element => {
   const storeContext = useContext<StoreContextInterface>(StoreContext);
-  const [callList, setCallList] = useState<CallInterface[]>([]);
+  const callList = useRef<CallInterface[]>([]);
+  const [callListFiltered, setCallListFiltered] = useState<CallInterface[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(0);
   const [groupByDate, setGroupByDate] = useState<boolean>(false);
   const [selectAll, setSelectAll] = useState<boolean>(false);
   const [selectedCalls, setSelectedCalls] = useState<string[]>([]);
-  const pageSize = 10;
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
+
   const [paginatedCalls] = useLazyQuery<PaginatedCallsResponseInterface>(
     PAGINATED_CALLS_QUERY
   );
@@ -48,7 +60,7 @@ export const CallList = (): JSX.Element => {
   };
   const handleSelectAllCallsChange = (newValue: boolean) => {
     setSelectAll(newValue);
-    if (newValue) setSelectedCalls(callList.map((c) => c.id));
+    if (newValue) setSelectedCalls(callListFiltered.map((c) => c.id));
     else setSelectedCalls([]);
   };
   const handleArchiveCalls = () => {
@@ -60,8 +72,8 @@ export const CallList = (): JSX.Element => {
       setSelectedCalls([]);
       setSelectAll(false);
       const results = responses.map((response) => response.data?.archiveCall);
-      setCallList(
-        callList.map((call: CallInterface) => {
+      setCallListFiltered(
+        callListFiltered.map((call: CallInterface) => {
           const result = results.find((r) => r?.id === call.id);
           if (!result) return call;
           return {
@@ -73,11 +85,47 @@ export const CallList = (): JSX.Element => {
     });
   };
 
-  const sortByDate = (callA: CallInterface, callB: CallInterface): number => {
-    const dateA = Date.parse(callA.created_at);
-    const dateB = Date.parse(callB.created_at);
-
-    return dateB - dateA;
+  const filterSideEffects = (filtered: CallInterface[]) => {
+    setGroupByDate(false);
+    setCallListFiltered(filtered);
+    setTotal(Math.floor(filtered.length / pageSize));
+  };
+  const handleFilterNone = () => {
+    filterSideEffects(callList.current);
+  };
+  const handleFilterByArchive = (archived: boolean) => {
+    const filtered = callList.current.filter((c) => c.is_archived === archived);
+    filterSideEffects(filtered);
+  };
+  const handleFilterByType = (callType: CallTypeEnum) => {
+    const filtered = callList.current.filter((c) => c.call_type === callType);
+    filterSideEffects(filtered);
+  };
+  const handleFilterByDate = (
+    callFilterFn: (calls: CallInterface[]) => CallInterface[]
+  ) => {
+    const filtered = callFilterFn(callList.current);
+    filterSideEffects(filtered);
+  };
+  const handleFilterByDateToday = partialCall(
+    handleFilterByDate,
+    getTodayCalls
+  );
+  const handleFilterByDateYesterday = partialCall(
+    handleFilterByDate,
+    getYesterdayCalls
+  );
+  const handleFilterByDateLastWeek = partialCall(
+    handleFilterByDate,
+    getLastWeekCalls
+  );
+  const handleFilterByDateLastMonth = partialCall(
+    handleFilterByDate,
+    getLastMonthCalls
+  );
+  const handleFilterByDirection = (direction: 'inbound' | 'outbound') => {
+    const filtered = callList.current.filter((c) => c.direction === direction);
+    filterSideEffects(filtered);
   };
 
   const printCalls = (calls: CallInterface[]): JSX.Element[] => {
@@ -93,10 +141,22 @@ export const CallList = (): JSX.Element => {
       ));
   };
 
-  const todayCalls = getTodayCalls(callList);
-  const yesterdayCalls = getYesterdayCalls(callList);
-  const lastWeekCalls = getLastWeekCalls(callList);
-  const lastMonthCalls = getLastMonthCalls(callList);
+  const pageSize = 10;
+  const todayCalls = getTodayCalls(callList.current);
+  const yesterdayCalls = getYesterdayCalls(callList.current);
+  const lastWeekCalls = getLastWeekCalls(callList.current);
+  const lastMonthCalls = getLastMonthCalls(callList.current);
+
+  useEffect(() => {
+    if (callListFiltered.length === 0) setCallListFiltered(callList.current);
+    else
+      setCallListFiltered(
+        callListFiltered.map((callFiltered: CallInterface) => {
+          const call = callList.current.find((c) => (c.id = callFiltered.id));
+          return call ?? callFiltered;
+        })
+      );
+  }, [callList.current]);
 
   useEffect(() => {
     if (!storeContext.cache.login) return;
@@ -105,7 +165,7 @@ export const CallList = (): JSX.Element => {
     void paginatedCalls({ variables: { offset: 0, limit: 500 } }).then(
       (result) => {
         if (result.data && result.data.paginatedCalls) {
-          setCallList(result.data.paginatedCalls.nodes);
+          callList.current = result.data.paginatedCalls.nodes;
           setTotal(
             Math.floor((result.data.paginatedCalls.totalCount ?? 0) / pageSize)
           );
@@ -126,6 +186,43 @@ export const CallList = (): JSX.Element => {
           text='Group calls by date'
           onChange={setGroupByDate}
         />
+        <Button onClick={(evt) => setFilterAnchor(evt.currentTarget)}>
+          Filter
+        </Button>
+        <Menu
+          anchorEl={filterAnchor}
+          open={filterAnchor !== null}
+          onClose={() => setFilterAnchor(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        >
+          <MenuItem onClick={() => handleFilterNone()}>All</MenuItem>
+          <MenuItem onClick={() => handleFilterByArchive(true)}>
+            Archived
+          </MenuItem>
+          <MenuItem onClick={() => handleFilterByArchive(false)}>
+            Not archived
+          </MenuItem>
+          <MenuItem onClick={() => handleFilterByType(CallTypeEnum.MISSED)}>
+            Missed
+          </MenuItem>
+          <MenuItem onClick={() => handleFilterByType(CallTypeEnum.ANSWERED)}>
+            Answred
+          </MenuItem>
+          <MenuItem onClick={() => handleFilterByType(CallTypeEnum.VOICEMAIL)}>
+            Voicemail
+          </MenuItem>
+          <MenuItem onClick={() => handleFilterByDirection('inbound')}>
+            Inbound
+          </MenuItem>
+          <MenuItem onClick={() => handleFilterByDirection('outbound')}>
+            Outbound
+          </MenuItem>
+          <MenuItem onClick={handleFilterByDateToday}>Today</MenuItem>
+          <MenuItem onClick={handleFilterByDateYesterday}>Yesterday</MenuItem>
+          <MenuItem onClick={handleFilterByDateLastWeek}>Last week</MenuItem>
+          <MenuItem onClick={handleFilterByDateLastMonth}>Last month</MenuItem>
+        </Menu>
       </div>
       {!groupByDate && (
         <>
@@ -137,7 +234,7 @@ export const CallList = (): JSX.Element => {
             className='call-list__pagination'
           />
           <Stack className='call-list__stack'>
-            {printCalls([...callList].sort(sortByDate))}
+            {printCalls([...callListFiltered].sort(sortByDate))}
           </Stack>
         </>
       )}
