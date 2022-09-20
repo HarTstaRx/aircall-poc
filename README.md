@@ -1,5 +1,5 @@
 # Introduction
-This is the result fo the technical challenge proposed to me for applying a job at Aircall
+This is the result of the technical challenge proposed to me for applying a job at Aircall
 I started the challenge September 18 around 11:00 and ended it September 20 around 14:00.
 
 ## Requisites
